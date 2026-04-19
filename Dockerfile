@@ -1,5 +1,5 @@
 # 1. Etapa de construcción
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 # 2. Copiar tu proyecto y restaurar
@@ -11,7 +11,7 @@ COPY . .
 RUN dotnet publish "NanoGuardian.Api.csproj" -c Release -o /app/publish
 
 # 4. Etapa de ejecución (Servidor en Render)
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
+FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 COPY --from=build /app/publish .
 
