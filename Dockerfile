@@ -1,18 +1,18 @@
-# Imagen de SDK para compilar
+# 1. SDK para compilar
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
 WORKDIR /app
 
-# Copiamos el archivo .csproj usando la ruta relativa correcta
-COPY ["NanoGuardian.Api/NanoGuardian.Api.csproj", "NanoGuardian.Api/"]
-RUN dotnet restore "NanoGuardian.Api/NanoGuardian.Api.csproj"
+# Copiamos el archivo del proyecto (estando en la misma carpeta que el Dockerfile)
+COPY "NanoGuardian.Api.csproj" ./
+RUN dotnet restore
 
-# Copiamos todo el código fuente
-COPY . .
+# Copiamos el resto de los archivos
+COPY . ./
 
-# Compilamos y publicamos
-RUN dotnet publish "NanoGuardian.Api/NanoGuardian.Api.csproj" -c Release -o out
+# Publicamos
+RUN dotnet publish "NanoGuardian.Api.csproj" -c Release -o out
 
-# Imagen de runtime
+# 2. Runtime para ejecutar
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 COPY --from=build-env /app/out .
