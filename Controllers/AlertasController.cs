@@ -7,38 +7,41 @@ namespace NanoGuardian.Api.Controllers
     [Route("api/[controller]")]
     public class AlertasController : ControllerBase
     {
-        // 1. Creamos una "memoria temporal" para guardar la última alerta que llegue
-        private static Alerta _ultimaAlerta = null;
+        // Memoria temporal estática (persiste mientras el servidor esté encendido)
+        private static Alerta? _ultimaAlerta = null;
 
-        // 2. Método POST: El sensor usa este para ENVIAR la alerta
+        // POST: api/Alertas
+        // El ESP32 envía los datos aquí
         [HttpPost]
         public IActionResult RecibirAlerta([FromBody] Alerta nuevaAlerta)
         {
-            if (string.IsNullOrEmpty(nuevaAlerta.Paciente))
+            if (nuevaAlerta == null)
             {
-                return BadRequest("El nombre del paciente es obligatorio.");
+                return BadRequest(new { mensaje = "Cuerpo de la petición vacío o inválido" });
             }
-            
-            // Guardamos la alerta en nuestra memoria temporal
+
+            // Guardamos la alerta
             _ultimaAlerta = nuevaAlerta;
-            
-            Console.WriteLine($"\n🚨 ALERTA RECIBIDA: Paciente {nuevaAlerta.Paciente} cayó con {nuevaAlerta.FuerzaImpactoG}G\n");
-            
-            return Ok(new { mensaje = "Alerta procesada con éxito", codigo = 200 });
+
+            // Log para Render (ver en la pestaña 'Logs' de Render)
+            Console.WriteLine($"[ALERT] Recibida de: {nuevaAlerta.Paciente}, G: {nuevaAlerta.FuerzaImpactoG}");
+
+            return Ok(new { mensaje = "Alerta procesada", ok = true });
         }
 
-        // 3. Método GET: Tu app móvil usa este para LEER la última alerta
+        // GET: api/Alertas
+        // La App móvil consulta aquí
         [HttpGet]
         public IActionResult ObtenerUltimaAlerta()
         {
-            // Si nadie ha enviado alertas aún, mandamos un mensaje de espera
             if (_ultimaAlerta == null)
             {
-                // Usamos una estructura anónima que coincida con lo que espera tu app
-                return Ok(new { Paciente = "Ninguno", Estado = "Monitoreando...", FuerzaImpactoG = 0.0 });
+                return Ok(new { 
+                    paciente = "Ninguno", 
+                    estado = "Monitoreando", 
+                    fuerzaImpactoG = 0 
+                });
             }
-
-            // Si hay una alerta guardada, se la enviamos a la app
             return Ok(_ultimaAlerta);
         }
     }
