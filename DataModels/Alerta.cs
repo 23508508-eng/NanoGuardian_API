@@ -1,3 +1,4 @@
+using System;
 using System.Text.Json.Serialization;
 
 namespace NanoGuardian.Api.Models
@@ -11,6 +12,8 @@ namespace NanoGuardian.Api.Models
         public int FuerzaImpactoG { get; set; }
 
         [JsonPropertyName("estado")]
-        public string Estado { get; set; } = "Emergencia";
+        public string Estado { get; set; } = "Normal";
+
+        public DateTime Fecha { get; set; } = DateTime.UtcNow;
     }
 }

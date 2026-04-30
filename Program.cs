@@ -1,9 +1,19 @@
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Activar Controladores
 builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
 
-// 2. CONFIGURAR CORS (Permitir que el ESP32 y Wokwi se conecten)
+builder.Services.AddSwaggerGen(options =>
+{
+    // El prefijo 'global::' es la clave para saltar tu carpeta Models
+    options.SwaggerDoc("v1", new global::Microsoft.OpenApi.Models.OpenApiInfo 
+    { 
+        Title = "NanoGuardian API", 
+        Version = "v1",
+        Description = "Monitoreo de Llavero LoRa"
+    });
+});
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -12,18 +22,16 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
 var app = builder.Build();
 
-// 3. Activar Swagger
 app.UseSwagger();
-app.UseSwaggerUI();
+app.UseSwaggerUI(c => 
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "V1");
+    c.RoutePrefix = string.Empty;
+});
 
-// 4. USAR CORS (Debe ir antes de MapControllers)
 app.UseCors("AllowAll");
-
 app.UseAuthorization();
 app.MapControllers();
 

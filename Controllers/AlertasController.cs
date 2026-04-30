@@ -1,48 +1,24 @@
 using Microsoft.AspNetCore.Mvc;
-using NanoGuardian.Api.Models;
+using NanoGuardian.Api.Models; // Referencia a tu carpeta local
 
 namespace NanoGuardian.Api.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/[controller]")] 
     public class AlertasController : ControllerBase
     {
-        // Memoria temporal estática (persiste mientras el servidor esté encendido)
-        private static Alerta? _ultimaAlerta = null;
+        private static readonly List<Alerta> _alertasGuardadas = new List<Alerta>();
 
-        // POST: api/Alertas
-        // El ESP32 envía los datos aquí
-        [HttpPost]
-        public IActionResult RecibirAlerta([FromBody] Alerta nuevaAlerta)
-        {
-            if (nuevaAlerta == null)
-            {
-                return BadRequest(new { mensaje = "Cuerpo de la petición vacío o inválido" });
-            }
-
-            // Guardamos la alerta
-            _ultimaAlerta = nuevaAlerta;
-
-            // Log para Render (ver en la pestaña 'Logs' de Render)
-            Console.WriteLine($"[ALERT] Recibida de: {nuevaAlerta.Paciente}, G: {nuevaAlerta.FuerzaImpactoG}");
-
-            return Ok(new { mensaje = "Alerta procesada", ok = true });
-        }
-
-        // GET: api/Alertas
-        // La App móvil consulta aquí
         [HttpGet]
-        public IActionResult ObtenerUltimaAlerta()
+        public IActionResult Get() => Ok(_alertasGuardadas);
+
+        [HttpPost]
+        public IActionResult Post([FromBody] Alerta nuevaAlerta)
         {
-            if (_ultimaAlerta == null)
-            {
-                return Ok(new { 
-                    paciente = "Ninguno", 
-                    estado = "Monitoreando", 
-                    fuerzaImpactoG = 0 
-                });
-            }
-            return Ok(_ultimaAlerta);
+            if (nuevaAlerta == null) return BadRequest("Datos nulos");
+            nuevaAlerta.Fecha = DateTime.UtcNow;
+            _alertasGuardadas.Add(nuevaAlerta);
+            return Ok(new { mensaje = "Recibido", total = _alertasGuardadas.Count });
         }
     }
 }
